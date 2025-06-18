@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friend Finder - Find My Friends</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Background with blurred image effect */
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><filter id="blur"><feGaussianBlur stdDeviation="8"/></filter></defs><rect width="100%" height="100%" fill="%23333"/><circle cx="200" cy="200" r="100" fill="%23ff6b6b" opacity="0.7" filter="url(%23blur)"/><circle cx="800" cy="150" r="80" fill="%234ecdc4" opacity="0.6" filter="url(%23blur)"/><circle cx="1000" cy="400" r="120" fill="%23ffe66d" opacity="0.5" filter="url(%23blur)"/><circle cx="300" cy="600" r="90" fill="%23ff8b94" opacity="0.6" filter="url(%23blur)"/></svg>') center/cover;
+            z-index: -1;
+        }
+
+        /* Login/Signup Page Styles */
+        .auth-container {
+            display: flex;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #667eea);
+            border-radius: 22px;
+            z-index: -1;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .auth-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .auth-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #aaa;
+        }
+
+        .terms-text {
+            font-size: 0.8rem;
+            color: #666;
+            margin: 20px 0;
+        }
+
+        .btn-signup {
+            width: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .btn-signup:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .login-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .login-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Main App Styles */
+        .app-container {
+            display: none;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: #333;
+            color: white;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .header-logo-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 400px;
+            margin: 0 30px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: none;
+            border-radius: 20px;
+            background: #555;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .search-input::placeholder {
+            color: #aaa;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-item {
+            color: white;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: #555;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            gap: 30px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .profile-section {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .profile-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .profile-followers {
+            color: #667eea;
+            font-size: 0.9rem;
+        }
+
+        .menu-section {
+            margin-bottom: 25px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            color: #666;
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .menu-item:hover {
+            color: #667eea;
+        }
+
+        .menu-item.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .menu-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: white;
+        }
+
+        .chat-section {
+            margin-top: 20px;
+        }
+
+        .chat-online {
+            background: #4ecdc4;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .chat-online:hover {
+            transform: translateY(-2px);
+        }
+
+        .online-users {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .online-user {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .online-user:hover {
+            transform: scale(1.1);
+        }
+
+        .online-user::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            background: #4ecdc4;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        /* Feed */
+        .feed {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .post-composer {
+            padding: 25px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .composer-header {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .composer-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .composer-content {
+            flex: 1;
+        }
+
+        .composer-input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            resize: none;
+            font-family: inherit;
+            font-size: 1rem;
+            min-height: 80px;
+        }
+
+        .composer-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .composer-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .composer-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border: none;
+            background: none;
+            color: #666;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+
+        .composer-btn:hover {
+            background: #f8f9fa;
+        }
+
+        .publish-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .publish-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .post {
+            padding: 25px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .post-header {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .post-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .post-info {
+            flex: 1;
+        }
+
+        .post-author {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .post-status {
+            color: #4ecdc4;
+            font-size: 0.8rem;
+            margin-bottom: 3px;
+        }
+
+        .post-time {
+            color: #999;
+            font-size: 0.8rem;
+        }
+
+        .post-content {
+            margin-bottom: 15px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .post-image {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .post-action {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .post-action:hover {
+            color: #667eea;
+        }
+
+        .post-action.liked {
+            color: #ff6b6b;
+        }
+
+        .comment-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .comment {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .comment-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .comment-content {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 15px;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+        }
+
+        .comment-text {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .comment-input-section {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #eee;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        /* Right Sidebar */
+        .right-sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .suggestion-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .suggestion-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .suggestion-info {
+            flex: 1;
+        }
+
+        .suggestion-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+
+        .suggestion-mutual {
+            color: #999;
+            font-size: 0.8rem;
+        }
+
+        .add-friend-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-friend-btn:hover {
+            background: #5a6fd8;
+        }
+
+        @media (max-width: 968px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .sidebar, .right-sidebar {
+                position: static;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .search-bar {
+                margin: 0;
+                max-width: none;
+            }
+
+            .nav-menu {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .composer-header, .post-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .online-users {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-overlay"></div>
+
+    <!-- Authentication Page -->
+    <div id="authPage" class="auth-container">
+        <div class="auth-card">
+            <div class="logo">
+                <div class="logo-icon">F</div>
+                <div class="logo-text">Friend Finder</div>
+            </div>
+            
+            <h1 class="auth-title">Find My Friends</h1>
+            <p class="auth-subtitle">Signup now and meet awesome people around the world</p>
+            
+            <form id="signupForm">
+                <div class="form-group">
+                    <input type="text" class="form-input" placeholder="Enter name" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" class="form-input" placeholder="Enter email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-input" placeholder="Enter a password" required>
+                </div>
+                
+                <p class="terms-text">By signing up you agree to the terms</p>
+                
+                <button type="submit" class="btn-signup">Signup</button>
+            </form>
+            
+            <a href="#" class="login-link" onclick="showLogin()">Already have an account?</a>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="appContainer" class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="header-logo">
+                    <div class="header-logo-icon">F</div>
+                    <span>Friend Finder</span>
+                </div>
+                
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="Search friends, groups, videos...">
+                    <span class="search-icon">🔍</span>
+                </div>
+                
+                <nav class="nav-menu">
+                    <a href="#" class="nav-item active">Home</a>
+                    <a href="#" class="nav-item">Newsfeed</a>
+                    <a href="#" class="nav-item">Timeline</a>
+                    <a href="#" class="nav-item">All Pages</a>
+                    <a href="#" class="nav-item">Contact</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Left Sidebar -->
+            <aside class="sidebar">
+                <div class="profile-section">
+                    <div class="profile-avatar">SC</div>
+                    <div class="profile-name">Sarah Cruz</div>
+                    <div class="profile-followers">👥 1,299 followers</div>
+                </div>
+                
+                <div class="menu-section">
+                    <a href="#" class="menu-item active">
+                        <div class="menu-icon" style="background: #4ecdc4;">📰</div>
+                        <span>My Newsfeed</span>
+                    </a>
+                    <a href="#" class="menu-item">
+                        <div class="menu-icon" style="background: #9b59b6;">👥</div>
+                        <span>People Nearby</span>
+                    </a>
+                    <a href="#" class="menu-item">
+                        <div class="menu-icon" style="background: #ff6b6b;">👤</div>
+                        <span>Friends</span>
+                    </a>
+                    <a href="#" class="menu-item">
+                        <div class="menu-icon" style="background: #f39c12;">💬</div>
+                        <span>Messages</span>
+                    </a>
+                    <a href="#" class="menu-item">
+                        <div class="menu-icon" style="background: #3498db;">📷</div>
+                        <span>Images</span>
+                    </a>
+                    <a href="#" class="menu-item">
+                        <div class="menu-icon" style="background: #e74c3c;">🎥</div>
+                        <span>Videos</span>
+                    </a>
+                </div>
+                
+                <div class="chat-section">
+                    <div class="chat-online">Chat online</div>
+                    <div class="online-users">
+                        <div class="online-user">A</div>
+                        <div class="online-user">B</div>
+                        <div class="online-user">C</div>
+                        <div class="online-user">D</div>
+                        <div class="online-user">E</div>
+                        <div class="online-user">F</div>
+                        <div class="online-user">G</div>
+                        <div class="online-user">H</div>
+                        <div class="online-user">I</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Feed -->
+            <section class="feed">
+                <!-- Post Composer -->
+                <div class="post-composer">
+                    <div class="composer-header">
+                        <div class="composer-avatar">SC</div>
+                        <div class="composer-content">
+                            <textarea class="composer-input" placeholder="Write what you wish"></textarea>
+                            <div class="composer-actions">
+                                <div class="composer-buttons">
+                                    <button class="composer-btn">📎</button>
+                                    <button class="composer-btn">📷</button>
+                                    <button class="composer-btn">😊</button>
+                                    <button class="composer-btn">📍</button>
+                                </div>
+                                <button class="publish-btn">Publish</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post 1 -->
+                <article class="post">
+                    <div class="post-header">
+                        <div class="post-avatar">AC</div>
+                        <div class="post-info">
+                            <div class="post-author">Alexis Clark</div>
+                            <div class="post-status">following</div>
+                            <div class="post-time">Published a photo about 3 min ago</div>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        Beautiful sunset at the beach today! 🌅 Nothing beats nature's artwork.
+                    </div>
+                    <div class="post-image" style="background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);">
+                        🌅 Beautiful Beach Sunset
+                    </div>
+                    <div class="post-actions">
+                        <div class="post-action liked">❤️ 135</div>
+                        <div class="post-action">💬 0</div>
+                    </div>
+                </article>
+
+                <!-- Post 2 -->
+                <article class="post">
+                    <div class="post-header">
+                        <div class="post-avatar" style="background: linear-gradient(45deg, #4ecdc4, #44a08d);">DA</div>
+                        <div class="post-info">
+                            <div class="post-author">Diana 😊</div>
+                            <div class="post-status">following</div>
+                            <div class="post-time">Published about 1 hour ago</div>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. 😊 😊 😊
+                    </div>
+                    <div class="post-actions">
+                        <div class="post-action">❤️ 42</div>
+                        <div class="post-action">💬 3</div>
+                    </div>
+                    <div class="comment-section">
+                        <div class="comment">
+                            <div class="comment-avatar">DA</div>
+                            <div class="comment-content">
+                                <div class="comment-author">Diana 😊</div>
+                                <div class="comment-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</div>
+                            </div>
+                        </div>
+                        <div class="comment">
+                            <div class="comment-avatar" style="background: linear-gradient(45deg, #667eea, #764ba2);">JL</div>
+                            <div class="comment-content">
+                                <div class="comment-author">John</div>
+                                <div class="comment-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate.</div>
+                            </div>
+                        </div>
+                        <div class="comment-input-section">
+                            <div class="comment-avatar">SC</div>
+                            <input type="text" class="comment-input" placeholder="Post a comment">
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Post 3 -->
+                <article class="post">
+                    <div class="post-header">
+                        <div class="post-avatar" style="background: linear-gradient(45deg, #a8edea, #fed6e3);">MJ</div>
+                        <div class="post-info">
+                            <div class="post-author">Mike Johnson</div>
+                            <div class="post-status">following</div>
+                            <div class="post-time">Published about 2 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        Just finished an amazing workout session! 💪 Remember, consistency is key to achieving your fitness goals. What's your favorite way to stay active?
+                    </div>
+                    <div class="post-actions">
+                        <div class="post-action">❤️ 89</div>
+                        <div class="post-action">💬 12</div>
+                    </div>
+                </article>
+
+                <!-- Post 4 with Video -->
+                <article class="post">
+                    <div class="post-header">
+                        <div class="post-avatar" style="background: linear-gradient(45deg, #ffecd2, #fcb69f);">ES</div>
+                        <div class="post-info">
+                            <div class="post-author">Emma Smith</div>
+                            <div class="post-status">following</div>
+                            <div class="post-time">Published about 4 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        Cooking my grandmother's secret recipe today! 👩‍🍳 Family traditions are the best. What's your favorite family recipe?
+                    </div>
+                    <div class="post-image" style="background: linear-gradient(45deg, #667eea, #764ba2); position: relative;">
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem;">▶️</div>
+                        🍳 Cooking Video
+                    </div>
+                    <div class="post-actions">
+                        <div class="post-action">❤️ 156</div>
+                        <div class="post-action">💬 8</div>
+                    </div>
+                </article>
+
+                <!-- Post 5 -->
+                <article class="post">
+                    <div class="post-header">
+                        <div class="post-avatar" style="background: linear-gradient(45deg, #ff9a9e, #fad0c4);">RB</div>
+                        <div class="post-info">
+                            <div class="post-author">Robert Brown</div>
+                            <div class="post-status">following</div>
+                            <div class="post-time">Published about 6 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        Great team meeting today! 🚀 Excited about our new project launch next month. Hard work pays off when you have an amazing team by your side.
+                    </div>
+                    <div class="post-actions">
+                        <div class="post-action">❤️ 73</div>
+                        <div class="post-action">💬 5</div>
+                    </div>
+                </article>
+            </section>
+
+            <!-- Right Sidebar -->
+            <aside class="right-sidebar">
+                <h3 class="sidebar-title">Who to Follow</h3>
+                
+                <div class="suggestion-item">
+                    <div class="suggestion-avatar">DA</div>
+                    <div class="suggestion-info">
+                        <div class="suggestion-name">Diana Amber</div>
+                        <div class="suggestion-mutual">Add friend</div>
+                    </div>
+                    <button class="add-friend-btn">Add Friend</button>
+                </div>
+                
+                <div class="suggestion-item">
+                    <div class="suggestion-avatar" style="background: linear-gradient(45deg, #4ecdc4, #44a08d);">CH</div>
+                    <div class="suggestion-info">
+                        <div class="suggestion-name">Cris Harris</div>
+                        <div class="suggestion-mutual">Add friend</div>
+                    </div>
+                    <button class="add-friend-btn">Add Friend</button>
+                </div>
+                
+                <div class="suggestion-item">
+                    <div class="suggestion-avatar" style="background: linear-gradient(45deg, #a8edea, #fed6e3);">BW</div>
+                    <div class="suggestion-info">
+                        <div class="suggestion-name">Brian Walton</div>
+                        <div class="suggestion-mutual">Add friend</div>
+                    </div>
+                    <button class="add-friend-btn">Add Friend</button>
+                </div>
+                
+                <div class="suggestion-item">
+                    <div class="suggestion-avatar" style="background: linear-gradient(45deg, #ffecd2, #fcb69f);">OS</div>
+                    <div class="suggestion-info">
+                        <div class="suggestion-name">Olivia Steward</div>
+                        <div class="suggestion-mutual">Add friend</div>
+                    </div>
+                    <button class="add-friend-btn">Add Friend</button>
+                </div>
+                
+                <div class="suggestion-item">
+                    <div class="suggestion-avatar" style="background: linear-gradient(45deg, #ff9a9e, #fad0c4);">SP</div>
+                    <div class="suggestion-info">
+                        <div class="suggestion-name">Sophia Page</div>
+                        <div class="suggestion-mutual">Add friend</div>
+                    </div>
+                    <button class="add-friend-btn">Add Friend</button>
+                </div>
+
+                <!-- Trending Section -->
+                <div style="margin-top: 30px;">
+                    <h3 class="sidebar-title">Trending Topics</h3>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <div style="color: #667eea; font-weight: 600; font-size: 0.9rem; margin-bottom: 3px;">#TechNews</div>
+                        <div style="color: #999; font-size: 0.8rem;">15.2K posts</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <div style="color: #667eea; font-weight: 600; font-size: 0.9rem; margin-bottom: 3px;">#FitnessMotivation</div>
+                        <div style="color: #999; font-size: 0.8rem;">8.7K posts</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <div style="color: #667eea; font-weight: 600; font-size: 0.9rem; margin-bottom: 3px;">#FoodieLife</div>
+                        <div style="color: #999; font-size: 0.8rem;">12.1K posts</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <div style="color: #667eea; font-weight: 600; font-size: 0.9rem; margin-bottom: 3px;">#Travel2024</div>
+                        <div style="color: #999; font-size: 0.8rem;">6.3K posts</div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div style="margin-top: 30px;">
+                    <h3 class="sidebar-title">Recent Activity</h3>
+                    
+                    <div style="margin-bottom: 12px; font-size: 0.9rem; color: #666;">
+                        <strong>Mike Johnson</strong> liked your photo
+                        <div style="color: #999; font-size: 0.8rem;">2 min ago</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 12px; font-size: 0.9rem; color: #666;">
+                        <strong>Emma Smith</strong> commented on your post
+                        <div style="color: #999; font-size: 0.8rem;">5 min ago</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 12px; font-size: 0.9rem; color: #666;">
+                        <strong>Diana Amber</strong> started following you
+                        <div style="color: #999; font-size: 0.8rem;">1 hour ago</div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <script>
+        // Authentication Logic
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Simple validation
+            const inputs = this.querySelectorAll('.form-input');
+            let isValid = true;
+            
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.style.borderColor = '#ff6b6b';
+                } else {
+                    input.style.borderColor = '#e1e5e9';
+                }
+            });
+            
+            if (isValid) {
+                // Simulate successful signup
+                document.getElementById('authPage').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                document.body.style.background = '#f8f9fa';
+            } else {
+                alert('Please fill in all fields');
+            }
+        });
+
+        function showLogin() {
+            // For demo purposes, just switch to the app
+            document.getElementById('authPage').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            document.body.style.background = '#f8f9fa';
+        }
+
+        // Post Publishing
+        document.querySelector('.publish-btn').addEventListener('click', function() {
+            const textarea = document.querySelector('.composer-input');
+            const content = textarea.value.trim();
+            
+            if (content) {
+                createNewPost(content);
+                textarea.value = '';
+            }
+        });
+
+        function createNewPost(content) {
+            const feed = document.querySelector('.feed');
+            const postComposer = document.querySelector('.post-composer');
+            
+            const newPost = document.createElement('article');
+            newPost.className = 'post';
+            newPost.style.opacity = '0';
+            newPost.style.transform = 'translateY(-20px)';
+            
+            const currentTime = new Date().toLocaleString();
+            
+            newPost.innerHTML = `
+                <div class="post-header">
+                    <div class="post-avatar">SC</div>
+                    <div class="post-info">
+                        <div class="post-author">Sarah Cruz</div>
+                        <div class="post-status">you</div>
+                        <div class="post-time">Published just now</div>
+                    </div>
+                </div>
+                <div class="post-content">${content}</div>
+                <div class="post-actions">
+                    <div class="post-action">❤️ 0</div>
+                    <div class="post-action">💬 0</div>
+                </div>
+            `;
+            
+            // Insert after post composer
+            feed.insertBefore(newPost, postComposer.nextSibling);
+            
+            // Animate in
+            setTimeout(() => {
+                newPost.style.transition = 'all 0.5s ease';
+                newPost.style.opacity = '1';
+                newPost.style.transform = 'translateY(0)';
+            }, 100);
+        }
+
+        // Like functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('post-action') && e.target.textContent.includes('❤️')) {
+                const isLiked = e.target.classList.contains('liked');
+                const currentLikes = parseInt(e.target.textContent.match(/\d+/)[0]);
+                
+                if (isLiked) {
+                    e.target.classList.remove('liked');
+                    e.target.textContent = `❤️ ${currentLikes - 1}`;
+                } else {
+                    e.target.classList.add('liked');
+                    e.target.textContent = `❤️ ${currentLikes + 1}`;
+                }
+            }
+        });
+
+        // Add Friend functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('add-friend-btn')) {
+                e.target.textContent = 'Pending';
+                e.target.style.background = '#95a5a6';
+                e.target.disabled = true;
+                
+                // Simulate friend request sent
+                setTimeout(() => {
+                    e.target.textContent = 'Friends';
+                    e.target.style.background = '#4ecdc4';
+                }, 1500);
+            }
+        });
+
+        // Online user chat simulation
+        document.querySelectorAll('.online-user').forEach(user => {
+            user.addEventListener('click', function() {
+                const userName = this.textContent;
+                alert(`Starting chat with user ${userName}...`);
+            });
+        });
+
+        // Comment functionality
+        document.addEventListener('keypress', function(e) {
+            if (e.target.classList.contains('comment-input') && e.key === 'Enter') {
+                const commentText = e.target.value.trim();
+                if (commentText) {
+                    addComment(e.target, commentText);
+                    e.target.value = '';
+                }
+            }
+        });
+
+        function addComment(input, text) {
+            const commentSection = input.closest('.comment-section');
+            const inputSection = input.closest('.comment-input-section');
+            
+            const newComment = document.createElement('div');
+            newComment.className = 'comment';
+            newComment.innerHTML = `
+                <div class="comment-avatar">SC</div>
+                <div class="comment-content">
+                    <div class="comment-author">Sarah Cruz</div>
+                    <div class="comment-text">${text}</div>
+                </div>
+            `;
+            
+            commentSection.insertBefore(newComment, inputSection);
+            
+            // Update comment count
+            const commentAction = commentSection.closest('.post').querySelector('.post-action:last-child');
+            const currentCount = parseInt(commentAction.textContent.match(/\d+/)[0]);
+            commentAction.textContent = `💬 ${currentCount + 1}`;
+        }
+
+        // Search functionality
+        document.querySelector('.search-input').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            console.log('Searching for:', searchTerm);
+            // Here you would implement actual search functionality
+        });
+
+        // Menu item navigation
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all items
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                
+                // Add active class to clicked item
+                this.classList.add('active');
+                
+                const menuText = this.querySelector('span').textContent;
+                console.log('Navigating to:', menuText);
+            });
+        });
+
+        // Navigation menu
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all items
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                
+                // Add active class to clicked item
+                this.classList.add('active');
+                
+                console.log('Navigating to:', this.textContent);
+            });
+        });
+
+        // Composer buttons functionality
+        document.querySelectorAll('.composer-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const emoji = this.textContent;
+                const textarea = document.querySelector('.composer-input');
+                
+                switch(emoji) {
+                    case '📎':
+                        alert('File attachment feature - coming soon!');
+                        break;
+                    case '📷':
+                        alert('Photo upload feature - coming soon!');
+                        break;
+                    case '😊':
+                        textarea.value += ' 😊 ';
+                        textarea.focus();
+                        break;
+                    case '📍':
+                        textarea.value += ' 📍 Current Location ';
+                        textarea.focus();
+                        break;
+                }
+            });
+        });
+
+        // Simulate real-time activity
+        setInterval(() => {
+            // Random online status updates
+            const onlineUsers = document.querySelectorAll('.online-user');
+            onlineUsers.forEach(user => {
+                if (Math.random() < 0.1) { // 10% chance
+                    user.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        user.style.transform = 'scale(1)';
+                    }, 300);
+                }
+            });
+        }, 3000);
+
+        // Responsive menu toggle for mobile
+        function toggleMobileMenu() {
+            const navMenu = document.querySelector('.nav-menu');
+            navMenu.style.display = navMenu.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add some entrance animations
+            const elements = document.querySelectorAll('.post, .sidebar, .right-sidebar');
+            elements.forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    el.style.transition = 'all 0.6s ease';
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key.toLowerCase()) {
+                    case 'k':
+                        e.preventDefault();
+                        document.querySelector('.search-input').focus();
+                        break;
+                    case 'n':
+                        e.preventDefault();
+                        document.querySelector('.composer-input').focus();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
